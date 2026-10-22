@@ -10,6 +10,7 @@ import 'package:food_expiration_reminder/data/local/app_preferences.dart';
 import 'package:food_expiration_reminder/data/models/food_item_model.dart';
 import 'package:food_expiration_reminder/features/food_inventory/presentation/controllers/inventory_controller.dart';
 import 'package:food_expiration_reminder/features/food_inventory/presentation/screens/camera_scan_screen.dart';
+import 'package:food_expiration_reminder/features/food_inventory/presentation/widgets/storage_selector.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -175,7 +176,6 @@ class _AddEditFoodScreenState extends State<AddEditFoodScreen> {
   }
 
   Widget _buildForm(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Form(
       key: _formKey,
       child: ListView(
@@ -285,29 +285,9 @@ class _AddEditFoodScreenState extends State<AddEditFoodScreen> {
           ),
           const SizedBox(height: 24),
           const _SectionLabel('Storage location'),
-          SizedBox(
-            width: double.infinity,
-            child: SegmentedButton<StorageLocation>(
-              showSelectedIcon: false,
-              segments: [
-                for (final s in StorageLocation.values)
-                  ButtonSegment(
-                    value: s,
-                    icon: Icon(s.icon, size: 18),
-                    label: Text(s.label),
-                  ),
-              ],
-              selected: {_storage},
-              onSelectionChanged: (s) => setState(() => _storage = s.first),
-              style: SegmentedButton.styleFrom(
-                selectedBackgroundColor: cs.primary.withValues(alpha: 0.14),
-                selectedForegroundColor: cs.primary,
-                textStyle: AppTextStyles.caption.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
-              ),
-            ),
+          StorageSelector(
+            selected: _storage,
+            onChanged: (s) => setState(() => _storage = s),
           ),
         ],
       ),

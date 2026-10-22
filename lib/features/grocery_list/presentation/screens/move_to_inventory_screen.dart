@@ -12,6 +12,7 @@ import 'package:food_expiration_reminder/data/local/app_preferences.dart';
 import 'package:food_expiration_reminder/data/models/food_item_model.dart';
 import 'package:food_expiration_reminder/data/models/grocery_item_model.dart';
 import 'package:food_expiration_reminder/features/food_inventory/presentation/controllers/inventory_controller.dart';
+import 'package:food_expiration_reminder/features/food_inventory/presentation/widgets/storage_selector.dart';
 import 'package:food_expiration_reminder/features/grocery_list/presentation/controllers/grocery_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -194,21 +195,10 @@ class _MoveToInventoryScreenState extends State<MoveToInventoryScreen> {
               style: AppTextStyles.label.copyWith(color: cs.onSurfaceVariant),
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<StorageLocation>(
-                showSelectedIcon: false,
-                emptySelectionAllowed: true,
-                segments: [
-                  for (final s in StorageLocation.values)
-                    ButtonSegment(value: s, label: Text(s.label)),
-                ],
-                // Nothing is highlighted once items use different places.
-                selected: shared.length == 1 ? shared : const {},
-                onSelectionChanged: (s) {
-                  if (s.isNotEmpty) _storeAllIn(s.first);
-                },
-              ),
+            StorageSelector(
+              // Nothing is highlighted once items use different places.
+              selected: shared.length == 1 ? shared.single : null,
+              onChanged: _storeAllIn,
             ),
             const SizedBox(height: 20),
             for (final d in _drafts) ...[

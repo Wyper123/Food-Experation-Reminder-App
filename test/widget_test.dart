@@ -515,4 +515,36 @@ void main() {
         ('Lakatan Bananas', '2 bunches', false));
     await pumpUntilDone(tester, db.close());
   });
+
+  testWidgets('storage labels stay on one line on a 360dp phone',
+      (tester) async {
+    // Same size as the itel P661N: 720x1612 px at 2x.
+    tester.view.physicalSize = const Size(720, 1612);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    final db = await pumpApp(tester);
+    await logIn(tester, DevSeeder.demoPassword);
+    await tester.tap(find.text('Add food'));
+    await pumpFor(tester, 5);
+    await tester.scrollUntilVisible(
+      find.text('Cabinet'),
+      200,
+      scrollable: find
+          .descendant(of: find.byType(Form), matching: find.byType(Scrollable))
+          .first,
+    );
+    await pumpFor(tester, 2);
+
+    for (final label in ['Fridge', 'Freezer', 'Pantry', 'Cabinet']) {
+      final text = find.text(label);
+      final style = tester.widget<Text>(text).style!;
+      // One line is font size x line height; a wrapped label is twice that.
+      expect(
+        tester.getSize(text).height,
+        lessThan(style.fontSize! * 1.6),
+        reason: '$label wrapped onto two lines',
+      );
+    }
+    await pumpUntilDone(tester, db.close());
+  });
 }

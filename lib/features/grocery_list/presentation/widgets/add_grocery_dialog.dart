@@ -125,7 +125,10 @@ class _AddGroceryDialogState extends State<AddGroceryDialog> {
                     showSelectedIcon: false,
                     segments: [
                       for (final p in GroceryPriority.values)
-                        ButtonSegment(value: p, label: Text(p.label)),
+                        ButtonSegment(
+                          value: p,
+                          label: Text(p.label, maxLines: 1, softWrap: false),
+                        ),
                     ],
                     selected: {_priority},
                     onSelectionChanged: (s) =>
