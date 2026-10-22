@@ -1,0 +1,58 @@
+name: food_expiration_reminder
+description: "A local-first Food Expiration Reminder application."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Icons & Styling
+  google_fonts: ^6.1.0
+  lucide_icons: ^0.257.0
+
+  # UI & Animations
+  shimmer: ^3.0.0
+  intl: ^0.19.0
+  flutter_svg: ^2.0.9
+
+  # Local Persistence
+  sqflite: ^2.4.5
+  # Desktop (Windows/Linux/macOS) and unit tests use the FFI implementation.
+  sqflite_common_ffi: ^2.4.4
+  path: ^1.9.1
+  uuid: ^4.6.0
+  shared_preferences: ^2.5.6
+
+  # Auth
+  crypto: ^3.0.7
+
+  # Reminders
+  flutter_local_notifications: ^22.3.2
+  timezone: ^0.11.2
+  flutter_timezone: ^5.1.1
+
+  # Sharing household invite codes
+  share_plus: ^13.3.1
+
+  # Expiration-date scanning (on-device OCR)
+  camera: ^0.12.1
+  image_picker: ^1.2.4
+  google_mlkit_text_recognition: ^0.17.1
+
+  # State management
+  provider: ^6.1.5+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
