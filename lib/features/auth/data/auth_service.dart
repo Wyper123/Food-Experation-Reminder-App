@@ -9,6 +9,14 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AuthException implements Exception {
   const AuthException(this.message);
 
+  /// Wrong email or password. Firebase cannot say which (that would reveal
+  /// which emails have accounts), so this also points Google users, who
+  /// have no app password, to the right button.
+  static const badCredentials = AuthException(
+    'Incorrect email or password. If you signed up with Google, use '
+    'Continue with Google.',
+  );
+
   final String message;
 
   @override
@@ -187,10 +195,13 @@ class FirebaseRestAuthService implements AuthService {
   @override
   Future<void> sendPasswordReset(String email) async {
     try {
-      await _call('accounts:sendOobCode', {
-        'requestType': 'PASSWORD_RESET',
-        'email': email,
-      }, raw: true);
+      await _call(
+          'accounts:sendOobCode',
+          {
+            'requestType': 'PASSWORD_RESET',
+            'email': email,
+          },
+          raw: true);
     } on FirebaseRestError catch (e) {
       // Same outcome as success, so emails cannot be probed.
       if (e.code != 'EMAIL_NOT_FOUND') throw _message(e.code);
@@ -209,11 +220,14 @@ class FirebaseRestAuthService implements AuthService {
     final Map<String, dynamic> r;
     try {
       // Re-checking the current password also yields a fresh token.
-      r = await _call('accounts:signInWithPassword', {
-        'email': account.email,
-        'password': current,
-        'returnSecureToken': true,
-      }, raw: true);
+      r = await _call(
+          'accounts:signInWithPassword',
+          {
+            'email': account.email,
+            'password': current,
+            'returnSecureToken': true,
+          },
+          raw: true);
     } on FirebaseRestError catch (e) {
       if (_isBadCredentials(e.code)) {
         throw const AuthException('Current password is incorrect.');
@@ -298,19 +312,21 @@ class FirebaseRestAuthService implements AuthService {
       }.contains(code);
 
   /// Firebase's error codes as messages a user can act on.
-  static AuthException _message(String code) => AuthException(switch (code) {
-        _ when _isBadCredentials(code) => 'Incorrect email or password.',
-        'INVALID_EMAIL' => 'Enter a valid email address.',
-        'EMAIL_EXISTS' => 'An account with this email already exists.',
-        'WEAK_PASSWORD' => 'Choose a stronger password.',
-        'USER_DISABLED' => 'This account has been disabled.',
-        'TOO_MANY_ATTEMPTS_TRY_LATER' =>
-          'Too many attempts. Wait a few minutes and try again.',
-        'OPERATION_NOT_ALLOWED' =>
-          'This sign-in method is turned off for this app (Firebase settings).',
-        'INVALID_IDP_RESPONSE' => 'Google sign-in failed. Please try again.',
-        _ => 'Something went wrong ($code). Please try again.',
-      });
+  static AuthException _message(String code) {
+    if (_isBadCredentials(code)) return AuthException.badCredentials;
+    return AuthException(switch (code) {
+      'INVALID_EMAIL' => 'Enter a valid email address.',
+      'EMAIL_EXISTS' => 'An account with this email already exists.',
+      'WEAK_PASSWORD' => 'Choose a stronger password.',
+      'USER_DISABLED' => 'This account has been disabled.',
+      'TOO_MANY_ATTEMPTS_TRY_LATER' =>
+        'Too many attempts. Wait a few minutes and try again.',
+      'OPERATION_NOT_ALLOWED' =>
+        'This sign-in method is turned off for this app (Firebase settings).',
+      'INVALID_IDP_RESPONSE' => 'Google sign-in failed. Please try again.',
+      _ => 'Something went wrong ($code). Please try again.',
+    });
+  }
 
   static FirebaseAuthPost _httpPost(String apiKey) {
     final client = HttpClient()

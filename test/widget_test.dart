@@ -86,7 +86,7 @@ void main() {
     final db = await pumpApp(tester);
     await logIn(tester, 'not-the-password');
 
-    expect(find.text('Incorrect email or password.'), findsOneWidget);
+    expect(find.text(AuthException.badCredentials.message), findsOneWidget);
     expect(find.text('Use first'), findsNothing);
     await pumpUntilDone(tester, db.close());
   });

@@ -67,7 +67,7 @@ void main() {
 
   test('Firebase error codes become readable messages', () async {
     for (final (code, message) in [
-      ('INVALID_LOGIN_CREDENTIALS', 'Incorrect email or password.'),
+      ('INVALID_LOGIN_CREDENTIALS', AuthException.badCredentials.message),
       ('EMAIL_EXISTS', 'An account with this email already exists.'),
       ('WEAK_PASSWORD', 'Choose a stronger password.'),
       ('TOO_MANY_ATTEMPTS_TRY_LATER',

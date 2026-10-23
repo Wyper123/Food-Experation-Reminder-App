@@ -61,7 +61,7 @@ void main() {
           isA<AuthException>().having(
             (e) => e.message,
             'message',
-            'Incorrect email or password.',
+            AuthException.badCredentials.message,
           ),
         ),
       );

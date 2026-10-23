@@ -36,7 +36,7 @@ class FakeAuthService implements AuthService {
   Future<AuthAccount> signIn(String email, String password) async {
     final a = _accounts[email];
     if (a == null || a.password != password) {
-      throw const AuthException('Incorrect email or password.');
+      throw AuthException.badCredentials;
     }
     return _current = _account(email);
   }
