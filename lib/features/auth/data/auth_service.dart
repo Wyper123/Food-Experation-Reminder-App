@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// A failure the user can fix; [message] is shown as-is.
@@ -129,10 +131,20 @@ class FirebaseAuthService implements AuthService {
   @override
   Future<void> signOut() => _auth.signOut();
 
+  /// Longest a login request may take before the user is told to check the
+  /// connection. Firebase itself can wait minutes, e.g. on Wi-Fi with
+  /// broken IPv6, which left the button spinning.
+  static const requestTimeout = Duration(seconds: 20);
+
   /// Turns Firebase's error codes into messages a user can act on.
   static Future<T> _guard<T>(Future<T> Function() action) async {
     try {
-      return await action();
+      return await action().timeout(requestTimeout);
+    } on TimeoutException {
+      throw const AuthException(
+        "Couldn't reach the login server. Check your internet; if you're on "
+        'Wi-Fi, try mobile data.',
+      );
     } on FirebaseAuthException catch (e) {
       throw AuthException(switch (e.code) {
         'invalid-credential' ||
