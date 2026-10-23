@@ -86,6 +86,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  static String _themeLabel(ThemeMode mode) => switch (mode) {
+        ThemeMode.system => 'System',
+        ThemeMode.light => 'Light',
+        ThemeMode.dark => 'Dark',
+      };
+
+  Future<void> _pickTheme() async {
+    final prefs = context.read<AppPreferences>();
+    final picked = await showModalBottomSheet<ThemeMode>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: Text('Theme', style: AppTextStyles.title),
+            ),
+            for (final (mode, icon, subtitle) in const [
+              (
+                ThemeMode.system,
+                Icons.brightness_auto_outlined,
+                'Match your phone',
+              ),
+              (ThemeMode.light, Icons.light_mode_outlined, null),
+              (ThemeMode.dark, Icons.dark_mode_outlined, null),
+            ])
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                leading: Icon(icon),
+                title: Text(_themeLabel(mode)),
+                subtitle: subtitle == null ? null : Text(subtitle),
+                trailing: mode == prefs.themeMode
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: Theme.of(ctx).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () => Navigator.of(ctx).pop(mode),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (picked != null) await prefs.setThemeMode(picked);
+  }
+
   Future<void> _changePassword() async {
     final changed = await showChangePasswordSheet(context);
     if (changed == true && mounted) {
@@ -207,12 +256,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Card(
         child: Column(
           children: [
+            // A 3-way choice: an on/off switch read "off" while the app was
+            // dark because it followed the phone, and tapping seemed to do
+            // nothing.
             ReminderSettingTile(
               icon: Icons.dark_mode_outlined,
-              title: 'Dark mode',
-              value: prefs.themeMode == ThemeMode.dark,
-              onChanged: (v) =>
-                  prefs.setThemeMode(v ? ThemeMode.dark : ThemeMode.light),
+              title: 'Theme',
+              trailingText: _themeLabel(prefs.themeMode),
+              onTap: _pickTheme,
             ),
             const Divider(indent: 68),
             ReminderSettingTile(

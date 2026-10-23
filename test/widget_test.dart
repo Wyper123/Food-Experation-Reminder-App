@@ -138,7 +138,7 @@ void main() {
     await tester.tap(find.text('Add to inventory'));
     await pumpFor(tester, 3);
     expect(find.text('Enter a food name'), findsOneWidget);
-    expect(find.text('Choose a category'), findsOneWidget);
+    expect(find.text('Enter a category'), findsOneWidget);
     // Once as a snackbar (dates may be off-screen), once under the field.
     expect(find.text('Set an expiration date'), findsNWidgets(2));
 
@@ -146,9 +146,11 @@ void main() {
       find.widgetWithText(TextFormField, 'Food name'),
       'Tofu',
     );
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
-    await pumpFor(tester, 3);
-    await tester.tap(find.text('Produce').last);
+    // Typed lowercase; saved with the built-in category's spelling.
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Category'),
+      'produce',
+    );
     await pumpFor(tester, 3);
 
     // Expires today: the earliest date the picker allows.
@@ -317,20 +319,19 @@ void main() {
     // Tea Bags has no category yet, so confirming is blocked.
     await tester.tap(find.text('Add 2 items to inventory'));
     await pumpFor(tester, 3);
-    expect(find.text('Choose one'), findsOneWidget);
+    expect(find.text('Enter a category'), findsOneWidget);
 
     final teaCard = find.ancestor(
       of: find.text('Tea Bags'),
       matching: find.byType(Card),
     );
-    await tester.tap(
+    await tester.enterText(
       find.descendant(
         of: teaCard,
-        matching: find.byType(DropdownButtonFormField<String>),
+        matching: find.widgetWithText(TextFormField, 'Category'),
       ),
+      'Beverages',
     );
-    await pumpFor(tester, 3);
-    await tester.tap(find.text('Beverages').last);
     await pumpFor(tester, 3);
     // Fridge default: Beverages estimate replaces the fallback.
     expect(find.text('Estimated · 10 days left'), findsOneWidget);
@@ -545,6 +546,59 @@ void main() {
         reason: '$label wrapped onto two lines',
       );
     }
+    await pumpUntilDone(tester, db.close());
+  });
+
+  testWidgets('a custom category is saved as typed', (tester) async {
+    tester.view.physicalSize = const Size(1200, 3600);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final db = await pumpApp(tester);
+    await logIn(tester, DevSeeder.demoPassword);
+    await tester.tap(find.text('Add food'));
+    await pumpFor(tester, 5);
+
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Food name'), 'Lakatan');
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Category'), 'tropical fruit');
+    await tester.tap(find.widgetWithText(InkWell, 'Expiration date *'));
+    await pumpFor(tester, 3);
+    await tester.tap(find.text('${DateTime.now().day}').last);
+    await tester.tap(find.text('OK'));
+    await pumpFor(tester, 3);
+    await tester.tap(find.text('Add to inventory'));
+    await pumpFor(tester);
+
+    final saved = (await pumpUntilDone(
+      tester,
+      SqfliteFoodDao(db).getAll('H-4B27'),
+    ))
+        .singleWhere((e) => e.name == 'Lakatan');
+    expect(saved.category, 'Tropical fruit');
+    await pumpUntilDone(tester, db.close());
+  });
+
+  testWidgets('theme setting shows and switches System / Light / Dark',
+      (tester) async {
+    tester.view.physicalSize = const Size(1200, 3600);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final db = await pumpApp(tester);
+    await logIn(tester, DevSeeder.demoPassword);
+    await tester.tap(find.text('Profile').last);
+    await pumpFor(tester);
+
+    // First launch follows the phone, and says so.
+    expect(prefs.themeMode, ThemeMode.system);
+    expect(find.text('System'), findsOneWidget);
+
+    await tester.tap(find.text('Theme'));
+    await pumpFor(tester, 5);
+    await tester.tap(find.text('Dark'));
+    await pumpFor(tester, 5);
+    expect(prefs.themeMode, ThemeMode.dark);
+    expect(find.text('Dark'), findsOneWidget);
     await pumpUntilDone(tester, db.close());
   });
 }

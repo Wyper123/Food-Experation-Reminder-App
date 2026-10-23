@@ -6,6 +6,7 @@ import 'package:food_expiration_reminder/core/constants/storage_locations.dart';
 import 'package:food_expiration_reminder/core/utils/date_formatter.dart';
 import 'package:food_expiration_reminder/core/utils/quantity_parser.dart';
 import 'package:food_expiration_reminder/core/utils/validators.dart';
+import 'package:food_expiration_reminder/core/widgets/category_field.dart';
 import 'package:food_expiration_reminder/core/widgets/custom_button.dart';
 import 'package:food_expiration_reminder/core/widgets/custom_text_field.dart';
 import 'package:food_expiration_reminder/data/local/app_preferences.dart';
@@ -288,19 +289,14 @@ class _DraftCard extends StatelessWidget {
               children: [
                 Expanded(
                   flex: 3,
-                  child: DropdownButtonFormField<String>(
+                  child: CategoryField(
                     initialValue: draft.category,
-                    isExpanded: true,
-                    decoration: CustomTextField.decoration(
-                      context,
-                      label: 'Category',
-                    ),
-                    items: [
-                      for (final c in AppConstants.categories)
-                        DropdownMenuItem(value: c, child: Text(c)),
-                    ],
+                    showIcon: false,
+                    extraSuggestions: context
+                        .read<InventoryController>()
+                        .items
+                        .map((e) => e.category),
                     onChanged: onCategory,
-                    validator: (v) => v == null ? 'Choose one' : null,
                   ),
                 ),
                 const SizedBox(width: 10),

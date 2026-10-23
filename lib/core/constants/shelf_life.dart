@@ -21,6 +21,18 @@ class ShelfLife {
       StorageLocation.pantry: 1,
       StorageLocation.cabinet: 1,
     },
+    'Fruits': {
+      StorageLocation.fridge: 7,
+      StorageLocation.freezer: 240,
+      StorageLocation.pantry: 5,
+      StorageLocation.cabinet: 5,
+    },
+    'Vegetables': {
+      StorageLocation.fridge: 7,
+      StorageLocation.freezer: 240,
+      StorageLocation.pantry: 4,
+      StorageLocation.cabinet: 4,
+    },
     'Produce': {
       StorageLocation.fridge: 7,
       StorageLocation.freezer: 240,

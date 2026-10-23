@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:food_expiration_reminder/core/constants/app_constants.dart';
 import 'package:food_expiration_reminder/core/constants/app_text_styles.dart';
+import 'package:food_expiration_reminder/core/widgets/category_field.dart';
 import 'package:food_expiration_reminder/core/widgets/custom_button.dart';
 import 'package:food_expiration_reminder/core/widgets/custom_text_field.dart';
 import 'package:food_expiration_reminder/data/models/grocery_item_model.dart';
+import 'package:food_expiration_reminder/features/food_inventory/presentation/controllers/inventory_controller.dart';
+import 'package:food_expiration_reminder/features/grocery_list/presentation/controllers/grocery_controller.dart';
+import 'package:provider/provider.dart';
 
 /// Adds a new item, or edits [item] when given. Returns the result, or
 /// null when cancelled.
@@ -97,19 +100,17 @@ class _AddGroceryDialogState extends State<AddGroceryDialog> {
                   textInputAction: TextInputAction.done,
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
+                CategoryField(
                   initialValue: _category,
-                  isExpanded: true,
-                  decoration: CustomTextField.decoration(
-                    context,
-                    label: 'Category (optional)',
-                    prefixIcon: Icons.category_outlined,
-                  ),
-                  items: [
-                    for (final c in AppConstants.categories)
-                      DropdownMenuItem(value: c, child: Text(c)),
+                  label: 'Category (optional)',
+                  isRequired: false,
+                  extraSuggestions: [
+                    for (final g in context.read<GroceryController>().items)
+                      ?g.category,
+                    for (final f in context.read<InventoryController>().items)
+                      f.category,
                   ],
-                  onChanged: (v) => setState(() => _category = v),
+                  onChanged: (v) => _category = v,
                 ),
                 const SizedBox(height: 16),
                 Text(

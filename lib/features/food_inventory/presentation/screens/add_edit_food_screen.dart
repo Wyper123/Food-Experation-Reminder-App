@@ -4,6 +4,7 @@ import 'package:food_expiration_reminder/core/constants/app_text_styles.dart';
 import 'package:food_expiration_reminder/core/constants/storage_locations.dart';
 import 'package:food_expiration_reminder/core/utils/date_formatter.dart';
 import 'package:food_expiration_reminder/core/utils/validators.dart';
+import 'package:food_expiration_reminder/core/widgets/category_field.dart';
 import 'package:food_expiration_reminder/core/widgets/custom_button.dart';
 import 'package:food_expiration_reminder/core/widgets/custom_text_field.dart';
 import 'package:food_expiration_reminder/data/local/app_preferences.dart';
@@ -199,20 +200,13 @@ class _AddEditFoodScreenState extends State<AddEditFoodScreen> {
                 (v == null || v.trim().isEmpty) ? 'Enter a food name' : null,
           ),
           const SizedBox(height: 14),
-          DropdownButtonFormField<String>(
+          CategoryField(
             initialValue: _category,
-            isExpanded: true,
-            decoration: CustomTextField.decoration(
-              context,
-              label: 'Category',
-              prefixIcon: Icons.category_outlined,
-            ),
-            items: [
-              for (final c in AppConstants.categories)
-                DropdownMenuItem(value: c, child: Text(c)),
-            ],
-            onChanged: (v) => setState(() => _category = v),
-            validator: (v) => v == null ? 'Choose a category' : null,
+            extraSuggestions: context
+                .read<InventoryController>()
+                .items
+                .map((e) => e.category),
+            onChanged: (v) => _category = v,
           ),
           const SizedBox(height: 14),
           Row(

@@ -22,6 +22,8 @@ class AppConstants {
     'Dairy',
     'Meat & Seafood',
     'Produce',
+    'Fruits',
+    'Vegetables',
     'Bakery',
     'Beverages',
     'Canned & Dry Goods',
