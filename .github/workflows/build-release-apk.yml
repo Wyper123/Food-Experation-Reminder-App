@@ -7,7 +7,8 @@ name: Build release APK
 
 on:
   push:
-    branches: [main]
+    # main = current version; v2 = next version under test.
+    branches: [main, v2]
   workflow_dispatch:
 
 jobs:
@@ -42,6 +43,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: food-reminder-release-apk
+          name: food-reminder-${{ github.ref_name }}-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
