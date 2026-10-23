@@ -64,7 +64,7 @@ Every push to `main` builds a signed release APK on GitHub:
 
 All builds are signed with the same key, so a new APK installs over the old one and keeps the data.
 
-The tag `v1.0.0` marks the earlier, fully local version, which kept accounts in SQLite instead of Firebase.
+The current version is **2.0.0** (tag `v2.0.0`). The tag `v1.0.0` marks the earlier, fully local version, which kept accounts in SQLite instead of Firebase.
 
 ## Tech stack
 

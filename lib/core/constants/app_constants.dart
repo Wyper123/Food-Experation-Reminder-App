@@ -3,6 +3,10 @@ class AppConstants {
 
   static const String appName = 'Food Expiration Reminder';
 
+  /// Shown in Profile → About. Must match `version:` in pubspec.yaml
+  /// (checked by test/core/app_version_test.dart).
+  static const String appVersion = '2.0.0';
+
   /// Items expiring within this many days are flagged "Use Soon".
   static const int useSoonThresholdDays = 3;
 

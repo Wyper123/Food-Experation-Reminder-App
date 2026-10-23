@@ -307,11 +307,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ReminderSettingTile(
               icon: Icons.info_outline_rounded,
               title: 'About',
-              trailingText: 'v1.0.0',
+              trailingText: 'v${AppConstants.appVersion}',
               onTap: () => showAboutDialog(
                 context: context,
                 applicationName: AppConstants.appName,
-                applicationVersion: '1.0.0',
+                applicationVersion: AppConstants.appVersion,
               ),
             ),
           ],
