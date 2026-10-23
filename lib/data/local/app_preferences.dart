@@ -12,6 +12,7 @@ class AppPreferences extends ChangeNotifier {
 
   final SharedPreferences _prefs;
 
+  static const _kAuthAccount = 'auth_account';
   static const _kThemeMode = 'theme_mode';
   static const _kDefaultStorage = 'default_storage';
   static const _kRemindEnabled = 'remind_enabled';
@@ -20,6 +21,18 @@ class AppPreferences extends ChangeNotifier {
   static const _kRemindMinute = 'remind_minute';
   static const _kRemindExpired = 'remind_expired';
   static const _kInboxSyncedUntil = 'inbox_synced_until_';
+
+  /// The signed-in account as JSON (uid, email, name, provider), so the app
+  /// reopens signed in, even offline. Not a UI preference: no notify.
+  String? get authAccountJson => _prefs.getString(_kAuthAccount);
+
+  Future<void> setAuthAccountJson(String? json) async {
+    if (json == null) {
+      await _prefs.remove(_kAuthAccount);
+    } else {
+      await _prefs.setString(_kAuthAccount, json);
+    }
+  }
 
   ThemeMode get themeMode =>
       ThemeMode.values.asNameMap()[_prefs.getString(_kThemeMode)] ??

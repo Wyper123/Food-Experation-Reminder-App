@@ -3,6 +3,8 @@
     <!-- Expiration reminders. POST_NOTIFICATIONS is declared by the plugin;
          boot permission lets scheduled reminders survive a restart. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Login (Firebase REST API). Flutter only adds this for debug builds. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- The camera plugin also asks for the microphone (for video), which
          date scanning never uses. -->
     <uses-permission

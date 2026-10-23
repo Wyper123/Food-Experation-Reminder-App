@@ -1,7 +1,7 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:food_expiration_reminder/app.dart';
+import 'package:food_expiration_reminder/core/constants/firebase_config.dart';
 import 'package:food_expiration_reminder/core/widgets/startup_error_app.dart';
 import 'package:food_expiration_reminder/data/local/app_preferences.dart';
 import 'package:food_expiration_reminder/data/local/database_helper.dart';
@@ -24,8 +24,6 @@ Future<void> main() async {
   // Anything thrown before runApp would otherwise leave the launch screen up
   // forever, so startup failures get their own screen.
   try {
-    // Reads android/app/google-services.json; no network needed.
-    await Firebase.initializeApp();
     final database = DatabaseHelper.instance;
     final preferences = await AppPreferences.load();
 
@@ -34,7 +32,10 @@ Future<void> main() async {
         database: database,
         preferences: preferences,
         scheduler: await _startReminders(),
-        auth: FirebaseAuthService(),
+        auth: FirebaseRestAuthService(
+          prefs: preferences,
+          apiKey: FirebaseConfig.apiKey,
+        ),
       ),
     );
   } catch (e, st) {
