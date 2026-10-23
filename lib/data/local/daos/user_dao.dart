@@ -2,25 +2,23 @@ import 'package:food_expiration_reminder/data/local/database_helper.dart';
 import 'package:food_expiration_reminder/data/models/household_model.dart';
 import 'package:food_expiration_reminder/data/models/user_model.dart';
 
-/// User account persistence. Password hashing happens before this layer.
+/// Local user profiles. Passwords are held by the auth provider (Firebase),
+/// never on this device; the id is the provider's uid.
 abstract class UserDao {
   Future<UserModel?> getById(String id);
   Future<UserModel?> findByEmail(String email);
-  Future<String?> getPasswordHash(String userId);
 
   /// Creates the user and their household membership atomically.
   /// Pass [newHousehold] to create it first (the user becomes its admin);
   /// otherwise the user joins the existing [householdId].
   Future<void> register(
     UserModel user, {
-    required String passwordHash,
     required String householdId,
     required HouseholdRole role,
     HouseholdModel? newHousehold,
   });
 
   Future<void> update(UserModel user);
-  Future<void> updatePasswordHash(String userId, String passwordHash);
 }
 
 class SqfliteUserDao implements UserDao {
@@ -51,22 +49,8 @@ class SqfliteUserDao implements UserDao {
   }
 
   @override
-  Future<String?> getPasswordHash(String userId) async {
-    final db = await _helper.database;
-    final rows = await db.query(
-      'users',
-      columns: ['password_hash'],
-      where: 'id = ?',
-      whereArgs: [userId],
-      limit: 1,
-    );
-    return rows.isEmpty ? null : rows.first['password_hash']! as String;
-  }
-
-  @override
   Future<void> register(
     UserModel user, {
-    required String passwordHash,
     required String householdId,
     required HouseholdRole role,
     HouseholdModel? newHousehold,
@@ -82,7 +66,8 @@ class SqfliteUserDao implements UserDao {
       }
       await txn.insert('users', {
         ...user.toMap(),
-        'password_hash': passwordHash,
+        // Legacy column from v1 (local passwords); now always empty.
+        'password_hash': '',
         'created_at': now,
       });
       // New members get the next avatar colour in the household.
@@ -105,16 +90,5 @@ class SqfliteUserDao implements UserDao {
   Future<void> update(UserModel user) async {
     final db = await _helper.database;
     await db.update('users', user.toMap(), where: 'id = ?', whereArgs: [user.id]);
-  }
-
-  @override
-  Future<void> updatePasswordHash(String userId, String passwordHash) async {
-    final db = await _helper.database;
-    await db.update(
-      'users',
-      {'password_hash': passwordHash},
-      where: 'id = ?',
-      whereArgs: [userId],
-    );
   }
 }

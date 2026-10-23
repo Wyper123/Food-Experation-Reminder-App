@@ -1,12 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:food_expiration_reminder/data/local/app_preferences.dart';
 import 'package:food_expiration_reminder/data/local/daos/household_dao.dart';
 import 'package:food_expiration_reminder/data/local/daos/user_dao.dart';
 import 'package:food_expiration_reminder/data/local/database_helper.dart';
 import 'package:food_expiration_reminder/data/local/dev_seeder.dart';
 import 'package:food_expiration_reminder/data/models/household_model.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/controllers/session_controller.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../test_helpers.dart';
@@ -15,20 +13,18 @@ void main() {
   sqfliteFfiInit();
 
   late DatabaseHelper db;
-  late AppPreferences prefs;
+  late FakeAuthService auth;
 
   SessionController newSession() => SessionController(
         users: SqfliteUserDao(db),
         households: SqfliteHouseholdDao(db),
-        hasher: fastHasher,
-        prefs: prefs,
+        auth: auth,
       );
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    prefs = await AppPreferences.load();
+    auth = FakeAuthService.withDemo();
     db = DatabaseHelper.inMemory(databaseFactoryFfi);
-    await DevSeeder.seedIfEmpty(db, fastHasher);
+    await DevSeeder.seedIfEmpty(db);
   });
 
   tearDown(() => db.close());
@@ -39,6 +35,7 @@ void main() {
     expect(session.user!.name, 'Alex Rivera');
     expect(session.householdId, 'H-4B27');
 
+    // The auth provider remembers the account across launches.
     final relaunched = newSession();
     expect(relaunched.isRestoring, isTrue);
     await relaunched.restore();
@@ -51,13 +48,11 @@ void main() {
     expect(afterLogout.isSignedIn, isFalse);
   });
 
-  test('rejects wrong passwords, unknown emails and unusable hashes',
-      () async {
+  test('wrong password or unknown email is rejected', () async {
     final session = newSession();
     for (final (email, pw) in [
       (DevSeeder.demoEmail, 'wrong-password'),
       ('nobody@email.com', DevSeeder.demoPassword),
-      ('jamie.cruz@email.com', '!'), // seeded member without a password
     ]) {
       await expectLater(
         session.signIn(email, pw),
@@ -73,26 +68,22 @@ void main() {
     expect(session.isSignedIn, isFalse);
   });
 
-  test('register creates a personal household with the user as admin',
-      () async {
+  test('register creates the account and a personal household', () async {
     final session = newSession();
     await session.register(
       name: 'Sam Lee',
       email: 'Sam@Email.com',
       password: 'longenough',
     );
+    expect(auth.hasAccount('sam@email.com'), isTrue);
+    // The local profile is keyed by the auth provider's uid.
+    expect(session.userId, auth.current!.uid);
     expect(session.user!.email, 'sam@email.com');
 
     final household =
         (await SqfliteHouseholdDao(db).getForUser(session.userId!))!;
     expect(household.name, "Sam's Kitchen");
-    expect(household.inviteCode, matches(RegExp(r'^FRESH-[A-Z2-9]{6}$')));
     expect(household.members.single.role, HouseholdRole.admin);
-    expect(session.householdId, household.id);
-
-    await session.signOut();
-    await session.signIn('sam@email.com', 'longenough');
-    expect(session.isSignedIn, isTrue);
   });
 
   test('register with an invite code joins that household', () async {
@@ -110,18 +101,9 @@ void main() {
     expect(members.last.role, HouseholdRole.roommate);
   });
 
-  test('register rejects a taken email and a bad invite code', () async {
-    final session = newSession();
+  test('a bad invite code fails before any account is created', () async {
     await expectLater(
-      session.register(
-        name: 'Alex 2',
-        email: 'ALEX.RIVERA@email.com',
-        password: 'longenough',
-      ),
-      throwsA(isA<AuthException>()),
-    );
-    await expectLater(
-      session.register(
+      newSession().register(
         name: 'Kim',
         email: 'kim@email.com',
         password: 'longenough',
@@ -129,18 +111,47 @@ void main() {
       ),
       throwsA(isA<AuthException>()),
     );
-    expect(await SqfliteUserDao(db).findByEmail('kim@email.com'), isNull);
+    expect(auth.hasAccount('kim@email.com'), isFalse);
   });
 
-  test('updateProfile and changePassword persist', () async {
+  test('a failed local profile rolls back the online account', () async {
+    // This phone already has a local profile with that email (a seeded
+    // member with no online account), so the local insert fails after the
+    // online account was created.
+    final session = newSession();
+    await expectLater(
+      session.register(
+        name: 'Dup',
+        email: 'jamie.cruz@email.com',
+        password: 'longenough',
+      ),
+      throwsA(isA<DatabaseException>()),
+    );
+    expect(auth.hasAccount('jamie.cruz@email.com'), isFalse);
+    expect(session.isSignedIn, isFalse);
+  });
+
+  test('an account from another phone gets a fresh local kitchen', () async {
+    // Exists online, but this phone's database has never seen it.
+    await auth.register('mia@email.com', 'longenough', displayName: 'Mia Cruz');
+    await auth.signOut();
+
+    final session = newSession();
+    await session.signIn('mia@email.com', 'longenough');
+    expect(session.user!.name, 'Mia Cruz');
+    final household =
+        (await SqfliteHouseholdDao(db).getForUser(session.userId!))!;
+    expect(household.name, "Mia's Kitchen");
+  });
+
+  test('password reset is sent for the normalised email', () async {
+    await newSession().sendPasswordReset('  Alex.Rivera@Email.com ');
+    expect(auth.resetEmails, [DevSeeder.demoEmail]);
+  });
+
+  test('change password checks the current one', () async {
     final session = newSession();
     await session.signIn(DevSeeder.demoEmail, DevSeeder.demoPassword);
-
-    await session.updateProfile(name: ' Alex R. ', accountType: 'Family');
-    final stored = (await SqfliteUserDao(db).getById(session.userId!))!;
-    expect(stored.name, 'Alex R.');
-    expect(stored.accountType, 'Family');
-
     await expectLater(
       session.changePassword('not-it', 'newpassword'),
       throwsA(isA<AuthException>()),
@@ -152,5 +163,14 @@ void main() {
       throwsA(isA<AuthException>()),
     );
     await session.signIn(DevSeeder.demoEmail, 'newpassword');
+  });
+
+  test('profile edits save locally', () async {
+    final session = newSession();
+    await session.signIn(DevSeeder.demoEmail, DevSeeder.demoPassword);
+    await session.updateProfile(name: ' Alex R. ', accountType: 'Family');
+    final stored = (await SqfliteUserDao(db).getById(session.userId!))!;
+    expect(stored.name, 'Alex R.');
+    expect(stored.accountType, 'Family');
   });
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "336392743932",
+    "project_id": "food-reminder-16bfe",
+    "storage_bucket": "food-reminder-16bfe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:336392743932:android:ac34ab8b787ad82408a079",
+        "android_client_info": {
+          "package_name": "com.giancoronel.foodreminder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAy4IxxFd7OgVGSsX3Q3_V-Qtb7E5AhBII"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

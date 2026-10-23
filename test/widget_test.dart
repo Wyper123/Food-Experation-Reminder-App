@@ -39,6 +39,7 @@ Future<T> pumpUntilDone<T>(WidgetTester tester, Future<T> future) async {
 void main() {
   late AppPreferences prefs;
   late NoopReminderScheduler scheduler;
+  late FakeAuthService auth;
 
   setUpAll(() {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -49,19 +50,20 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     prefs = await AppPreferences.load();
     scheduler = NoopReminderScheduler();
+    auth = FakeAuthService.withDemo();
   });
 
   Future<DatabaseHelper> pumpApp(WidgetTester tester) async {
     // The no-isolate factory runs SQLite synchronously, so all queries
     // complete on the test's fake clock.
     final db = DatabaseHelper.inMemory(databaseFactoryFfiNoIsolate);
-    await pumpUntilDone(tester, DevSeeder.seedIfEmpty(db, fastHasher));
+    await pumpUntilDone(tester, DevSeeder.seedIfEmpty(db));
     await tester.pumpWidget(
       FoodExpirationApp(
         database: db,
         preferences: prefs,
         scheduler: scheduler,
-        hasher: fastHasher,
+        auth: auth,
       ),
     );
     await pumpFor(tester, 3);
@@ -94,7 +96,7 @@ void main() {
 
     expect(find.text('Use first'), findsOneWidget);
     expect(find.text('Alex'), findsOneWidget);
-    expect(prefs.sessionUserId, isNotNull);
+    expect(auth.current?.email, DevSeeder.demoEmail);
 
     await tester.tap(find.text('Inventory').last);
     await pumpFor(tester);
@@ -117,7 +119,7 @@ void main() {
     await tester.tap(find.text('Log out'));
     await pumpFor(tester);
     expect(find.text('Welcome back'), findsOneWidget);
-    expect(prefs.sessionUserId, isNull);
+    expect(auth.current, isNull);
 
     await pumpUntilDone(tester, db.close());
   });

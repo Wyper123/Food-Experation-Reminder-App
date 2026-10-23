@@ -1,13 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:food_expiration_reminder/core/constants/app_colors.dart';
 import 'package:food_expiration_reminder/core/constants/app_text_styles.dart';
 import 'package:food_expiration_reminder/core/utils/validators.dart';
 import 'package:food_expiration_reminder/core/widgets/custom_button.dart';
-import 'package:food_expiration_reminder/data/local/dev_seeder.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/controllers/session_controller.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/screens/register_screen.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/widgets/auth_form_field.dart';
+import 'package:food_expiration_reminder/features/auth/presentation/widgets/reset_password_sheet.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -50,10 +49,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _fillDemo() {
-    _email.text = DevSeeder.demoEmail;
-    _password.text = DevSeeder.demoPassword;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,14 +113,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => ScaffoldMessenger.of(context)
-                            .showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Accounts are stored on this device only, so '
-                              'passwords cannot be reset by email.',
-                            ),
-                          ),
+                        onPressed: () => showResetPasswordSheet(
+                          context,
+                          initialEmail: _email.text,
                         ),
                         child: const Text('Forgot password?'),
                       ),
@@ -162,14 +152,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    if (kDebugMode)
-                      Center(
-                        child: TextButton.icon(
-                          onPressed: _fillDemo,
-                          icon: const Icon(Icons.science_outlined, size: 18),
-                          label: const Text('Fill demo account (debug only)'),
-                        ),
-                      ),
                   ],
                 ),
               ),

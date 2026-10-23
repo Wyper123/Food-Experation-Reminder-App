@@ -15,7 +15,6 @@ import 'package:food_expiration_reminder/features/notifications/reminders/remind
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import '../test_helpers.dart';
 
 FoodItemModel food(
   String id,
@@ -105,7 +104,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       prefs = await AppPreferences.load();
       db = DatabaseHelper.inMemory(databaseFactoryFfi);
-      await DevSeeder.seedIfEmpty(db, fastHasher);
+      await DevSeeder.seedIfEmpty(db);
       // Start from an empty inbox so only generated reminders show up.
       await (await db.database).delete('notifications');
 

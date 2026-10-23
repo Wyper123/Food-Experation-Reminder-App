@@ -3,8 +3,7 @@ import 'package:food_expiration_reminder/core/constants/storage_locations.dart';
 import 'package:food_expiration_reminder/data/models/reminder_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Small key-value settings that live outside SQLite: the signed-in user and
-/// device-level preferences. Listeners rebuild when a preference changes.
+/// Small device-level settings that live outside SQLite. Listeners rebuild when a preference changes.
 class AppPreferences extends ChangeNotifier {
   AppPreferences._(this._prefs);
 
@@ -13,7 +12,6 @@ class AppPreferences extends ChangeNotifier {
 
   final SharedPreferences _prefs;
 
-  static const _kSessionUser = 'session_user_id';
   static const _kThemeMode = 'theme_mode';
   static const _kDefaultStorage = 'default_storage';
   static const _kRemindEnabled = 'remind_enabled';
@@ -22,17 +20,6 @@ class AppPreferences extends ChangeNotifier {
   static const _kRemindMinute = 'remind_minute';
   static const _kRemindExpired = 'remind_expired';
   static const _kInboxSyncedUntil = 'inbox_synced_until_';
-
-  String? get sessionUserId => _prefs.getString(_kSessionUser);
-
-  /// Not a UI preference, so it does not notify.
-  Future<void> setSessionUserId(String? id) async {
-    if (id == null) {
-      await _prefs.remove(_kSessionUser);
-    } else {
-      await _prefs.setString(_kSessionUser, id);
-    }
-  }
 
   ThemeMode get themeMode =>
       ThemeMode.values.asNameMap()[_prefs.getString(_kThemeMode)] ??

@@ -1,4 +1,3 @@
-import 'package:food_expiration_reminder/core/security/password_hasher.dart';
 import 'package:food_expiration_reminder/data/local/database_helper.dart';
 import 'package:food_expiration_reminder/data/models/food_item_model.dart';
 import 'package:food_expiration_reminder/data/models/grocery_item_model.dart';
@@ -6,26 +5,22 @@ import 'package:food_expiration_reminder/data/models/household_model.dart';
 import 'package:food_expiration_reminder/data/models/notification_model.dart';
 import 'package:food_expiration_reminder/data/models/user_model.dart';
 
-/// Debug builds only: fills an empty database with a demo household.
-/// Sign in with [demoEmail] / [demoPassword]. The other demo members cannot
-/// sign in (their hash is deliberately invalid).
+/// Fills an empty database with a demo household, used by tests. Accounts
+/// live in Firebase, so the demo login ([demoEmail] / [demoPassword]) only
+/// exists in the tests' fake auth service, as uid [UserModel.mock]'s id.
 class DevSeeder {
   DevSeeder._();
 
   static const String demoEmail = 'alex.rivera@email.com';
   static const String demoPassword = 'demo1234';
 
-  static Future<void> seedIfEmpty(
-    DatabaseHelper helper,
-    PasswordHasher hasher,
-  ) async {
+  static Future<void> seedIfEmpty(DatabaseHelper helper) async {
     final db = await helper.database;
     final count = (await db.rawQuery('SELECT COUNT(*) AS c FROM users'))
         .first['c']! as int;
     if (count > 0) return;
 
     final now = DateTime.now().millisecondsSinceEpoch;
-    final demoHash = await hasher.hash(demoPassword);
     const household = HouseholdModel.mock;
 
     await db.transaction((txn) async {
@@ -44,7 +39,7 @@ class DevSeeder {
         batch
           ..insert('users', {
             ...user.toMap(),
-            'password_hash': m.isCurrentUser ? demoHash : '!',
+            'password_hash': '',
             'created_at': now,
           })
           ..insert('household_members', {

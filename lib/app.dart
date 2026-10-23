@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:food_expiration_reminder/core/constants/app_constants.dart';
-import 'package:food_expiration_reminder/core/security/password_hasher.dart';
 import 'package:food_expiration_reminder/core/theme/app_theme.dart';
 import 'package:food_expiration_reminder/data/local/app_preferences.dart';
 import 'package:food_expiration_reminder/data/local/daos/food_dao.dart';
@@ -9,6 +8,7 @@ import 'package:food_expiration_reminder/data/local/daos/household_dao.dart';
 import 'package:food_expiration_reminder/data/local/daos/notification_dao.dart';
 import 'package:food_expiration_reminder/data/local/daos/user_dao.dart';
 import 'package:food_expiration_reminder/data/local/database_helper.dart';
+import 'package:food_expiration_reminder/features/auth/data/auth_service.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/controllers/session_controller.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/screens/startup_gate.dart';
 import 'package:food_expiration_reminder/features/food_inventory/presentation/controllers/inventory_controller.dart';
@@ -27,13 +27,13 @@ class FoodExpirationApp extends StatelessWidget {
     required this.database,
     required this.preferences,
     required this.scheduler,
-    this.hasher = const PasswordHasher(),
+    required this.auth,
   });
 
   final DatabaseHelper database;
   final AppPreferences preferences;
   final ReminderScheduler scheduler;
-  final PasswordHasher hasher;
+  final AuthService auth;
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +45,7 @@ class FoodExpirationApp extends StatelessWidget {
           create: (_) => SessionController(
             users: SqfliteUserDao(database),
             households: SqfliteHouseholdDao(database),
-            hasher: hasher,
-            prefs: preferences,
+            auth: auth,
           )..restore(),
         ),
         ChangeNotifierProxyProvider<SessionController, InventoryController>(

@@ -17,7 +17,6 @@ import 'package:food_expiration_reminder/features/food_inventory/presentation/co
 import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import '../test_helpers.dart';
 
 void main() {
   sqfliteFfiInit();
@@ -27,13 +26,13 @@ void main() {
 
   setUp(() async {
     helper = DatabaseHelper.inMemory(databaseFactoryFfi);
-    await DevSeeder.seedIfEmpty(helper, fastHasher);
+    await DevSeeder.seedIfEmpty(helper);
   });
 
   tearDown(() => helper.close());
 
   test('seeder is idempotent', () async {
-    await DevSeeder.seedIfEmpty(helper, fastHasher);
+    await DevSeeder.seedIfEmpty(helper);
     final items = await SqfliteFoodDao(helper).getAll(hid);
     expect(items, hasLength(FoodItemModel.mockList.length));
   });
@@ -137,7 +136,6 @@ void main() {
     await expectLater(
       dao.register(
         user,
-        passwordHash: 'x',
         householdId: 'h-new',
         role: HouseholdRole.admin,
         newHousehold: const HouseholdModel(
@@ -154,7 +152,6 @@ void main() {
     // Joining an existing household takes the next avatar colour.
     await dao.register(
       user,
-      passwordHash: 'x',
       householdId: hid,
       role: HouseholdRole.roommate,
     );
@@ -162,7 +159,6 @@ void main() {
         (await SqfliteHouseholdDao(helper).getForUser('u-new'))!.members;
     expect(members.last.name, 'Sam');
     expect(members.last.colorIndex, 4);
-    expect(await dao.getPasswordHash('u-new'), 'x');
   });
 
   test('NotificationDao markAllRead', () async {

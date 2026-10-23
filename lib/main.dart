@@ -1,11 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:food_expiration_reminder/app.dart';
-import 'package:food_expiration_reminder/core/security/password_hasher.dart';
 import 'package:food_expiration_reminder/core/widgets/startup_error_app.dart';
 import 'package:food_expiration_reminder/data/local/app_preferences.dart';
 import 'package:food_expiration_reminder/data/local/database_helper.dart';
-import 'package:food_expiration_reminder/data/local/dev_seeder.dart';
+import 'package:food_expiration_reminder/features/auth/data/auth_service.dart';
 import 'package:food_expiration_reminder/features/notifications/reminders/reminder_scheduler.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -24,17 +24,17 @@ Future<void> main() async {
   // Anything thrown before runApp would otherwise leave the launch screen up
   // forever, so startup failures get their own screen.
   try {
-    const hasher = PasswordHasher();
+    // Reads android/app/google-services.json; no network needed.
+    await Firebase.initializeApp();
     final database = DatabaseHelper.instance;
     final preferences = await AppPreferences.load();
-    if (kDebugMode) await DevSeeder.seedIfEmpty(database, hasher);
 
     runApp(
       FoodExpirationApp(
         database: database,
         preferences: preferences,
         scheduler: await _startReminders(),
-        hasher: hasher,
+        auth: FirebaseAuthService(),
       ),
     );
   } catch (e, st) {

@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:food_expiration_reminder/data/local/app_preferences.dart';
 import 'package:food_expiration_reminder/data/local/daos/food_dao.dart';
 import 'package:food_expiration_reminder/data/local/daos/household_dao.dart';
 import 'package:food_expiration_reminder/data/local/daos/user_dao.dart';
@@ -8,7 +7,6 @@ import 'package:food_expiration_reminder/data/local/dev_seeder.dart';
 import 'package:food_expiration_reminder/data/models/household_model.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/controllers/session_controller.dart';
 import 'package:food_expiration_reminder/features/household/presentation/controllers/household_controller.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../test_helpers.dart';
@@ -25,15 +23,13 @@ void main() {
       (await households.getForUser(userId))!;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
     db = DatabaseHelper.inMemory(databaseFactoryFfi);
-    await DevSeeder.seedIfEmpty(db, fastHasher);
+    await DevSeeder.seedIfEmpty(db);
     households = SqfliteHouseholdDao(db);
     session = SessionController(
       users: SqfliteUserDao(db),
       households: households,
-      hasher: fastHasher,
-      prefs: await AppPreferences.load(),
+      auth: FakeAuthService(),
     );
   });
 
