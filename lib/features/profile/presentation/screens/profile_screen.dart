@@ -46,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                 leading: Icon(s.icon),
-                title: Text(s.fullLabel),
+                title: Text(s.label),
                 trailing: s == prefs.defaultStorage
                     ? Icon(
                         Icons.check_rounded,
@@ -267,7 +267,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const Divider(indent: 68),
             ReminderSettingTile(
-              icon: prefs.defaultStorage.icon,
+              icon: Icons.inventory_2_outlined,
               title: 'Default storage',
               subtitle: 'Pre-selected when adding food',
               trailingText: prefs.defaultStorage.label,
@@ -391,7 +391,8 @@ class _MiniStat extends StatelessWidget {
                     style: AppTextStyles.caption.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    maxLines: 1,
+                    // Two lines rather than "Items used…" on phones.
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],

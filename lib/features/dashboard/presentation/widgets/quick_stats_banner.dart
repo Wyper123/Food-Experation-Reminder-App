@@ -23,38 +23,42 @@ class QuickStatsBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            label: 'Expiring soon',
-            value: expiringSoon,
-            icon: Icons.schedule_rounded,
-            color: AppColors.amber,
-            onTap: onExpiringSoonTap,
+    // Same height for all three, even when one label wraps to two lines.
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _StatCard(
+              label: 'Expiring soon',
+              value: expiringSoon,
+              icon: Icons.schedule_rounded,
+              color: AppColors.amber,
+              onTap: onExpiringSoonTap,
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _StatCard(
-            label: 'Expired',
-            value: expired,
-            icon: Icons.error_outline_rounded,
-            color: AppColors.crimson,
-            onTap: onExpiredTap,
+          const SizedBox(width: 10),
+          Expanded(
+            child: _StatCard(
+              label: 'Expired',
+              value: expired,
+              icon: Icons.error_outline_rounded,
+              color: AppColors.crimson,
+              onTap: onExpiredTap,
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _StatCard(
-            label: 'Total stored',
-            value: totalStored,
-            icon: Icons.inventory_2_outlined,
-            color: AppColors.emerald,
-            onTap: onTotalTap,
+          const SizedBox(width: 10),
+          Expanded(
+            child: _StatCard(
+              label: 'Total stored',
+              value: totalStored,
+              icon: Icons.inventory_2_outlined,
+              color: AppColors.emerald,
+              onTap: onTotalTap,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -102,7 +106,8 @@ class _StatCard extends StatelessWidget {
                   color: fg,
                   fontWeight: FontWeight.w600,
                 ),
-                maxLines: 1,
+                // Two lines rather than "Expiring s…" on phones.
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ],

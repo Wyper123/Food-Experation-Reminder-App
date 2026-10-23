@@ -79,9 +79,15 @@ class ReminderSettingTile extends StatelessWidget {
                 )
               else ...[
                 if (trailingText != null)
-                  Text(
-                    trailingText!,
-                    style: AppTextStyles.subtitle.copyWith(color: cs.primary),
+                  // Fixed minimum width: switching "Fridge" to "Cabinet"
+                  // must not re-wrap the description beside it.
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 72),
+                    child: Text(
+                      trailingText!,
+                      textAlign: TextAlign.end,
+                      style: AppTextStyles.subtitle.copyWith(color: cs.primary),
+                    ),
                   ),
                 Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant),
               ],

@@ -136,14 +136,18 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(width: 8),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'dashboard-fab',
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AddEditFoodScreen()),
-        ),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add food'),
-      ),
+      // Hidden on an empty kitchen: the empty state has its own button,
+      // which this one would cover.
+      floatingActionButton: !inventory.isLoading && inventory.items.isEmpty
+          ? null
+          : FloatingActionButton.extended(
+              heroTag: 'dashboard-fab',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AddEditFoodScreen()),
+              ),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Add food'),
+            ),
       body: RefreshIndicator(
         onRefresh: () => _refreshAll(context),
         child: ListView(

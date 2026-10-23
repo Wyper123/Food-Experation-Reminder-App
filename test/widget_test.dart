@@ -293,6 +293,8 @@ void main() {
     expect(find.text('Sam'), findsOneWidget);
     expect(find.text("Sam's Kitchen · 1 member"), findsOneWidget);
     expect(find.text('Your kitchen is empty'), findsOneWidget);
+    // Only the empty state's own button; the floating one would cover it.
+    expect(find.text('Add food'), findsNothing);
     await pumpUntilDone(tester, db.close());
   });
 
