@@ -52,6 +52,16 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Google sign-in; first use creates the local profile and a personal
+  /// kitchen. False when the user backed out of the account picker.
+  Future<bool> signInWithGoogle() async {
+    final account = await _auth.signInWithGoogle();
+    if (account == null) return false;
+    _user = await _localProfileFor(account);
+    notifyListeners();
+    return true;
+  }
+
   /// Creates the account. With an [inviteCode] the user joins that
   /// household; otherwise they get their own, as its admin.
   Future<void> register({

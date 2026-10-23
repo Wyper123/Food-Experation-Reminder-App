@@ -55,6 +55,21 @@ class FakeAuthService implements AuthService {
     return _current = _account(email);
   }
 
+  /// What the Google account picker returns next; null = the user backed out.
+  AuthAccount? nextGoogleAccount;
+
+  @override
+  Future<AuthAccount?> signInWithGoogle() async {
+    final picked = nextGoogleAccount;
+    if (picked == null) return null;
+    // First use creates the account, like Firebase does.
+    _accounts.putIfAbsent(
+      picked.email,
+      () => (uid: picked.uid, password: '', name: picked.displayName),
+    );
+    return _current = picked;
+  }
+
   @override
   Future<void> deleteCurrent() async {
     final c = _current;

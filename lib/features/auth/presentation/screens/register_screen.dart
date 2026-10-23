@@ -4,6 +4,7 @@ import 'package:food_expiration_reminder/core/utils/validators.dart';
 import 'package:food_expiration_reminder/core/widgets/custom_button.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/controllers/session_controller.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/widgets/auth_form_field.dart';
+import 'package:food_expiration_reminder/features/auth/presentation/widgets/google_sign_in_button.dart';
 import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirm = TextEditingController();
   final _invite = TextEditingController();
   bool _submitting = false;
+  bool _googleBusy = false;
   String? _error;
 
   @override
@@ -52,6 +54,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) setState(() => _error = e.message);
     } finally {
       if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  Future<void> _continueWithGoogle() async {
+    setState(() {
+      _googleBusy = true;
+      _error = null;
+    });
+    try {
+      final signedIn =
+          await context.read<SessionController>().signInWithGoogle();
+      // StartupGate (the first route) now shows the app.
+      if (signedIn && mounted) {
+        Navigator.of(context).popUntil((r) => r.isFirst);
+      }
+    } on AuthException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _googleBusy = false);
     }
   }
 
@@ -132,7 +153,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     CustomButton(
                       label: 'Create account',
                       isLoading: _submitting,
-                      onPressed: _submit,
+                      onPressed: _googleBusy ? null : _submit,
+                    ),
+                    const SizedBox(height: 16),
+                    const OrDivider(),
+                    const SizedBox(height: 16),
+                    GoogleSignInButton(
+                      isLoading: _googleBusy,
+                      onPressed: _submitting ? null : _continueWithGoogle,
                     ),
                   ],
                 ),

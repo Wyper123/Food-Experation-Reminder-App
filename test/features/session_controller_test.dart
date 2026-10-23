@@ -4,6 +4,7 @@ import 'package:food_expiration_reminder/data/local/daos/user_dao.dart';
 import 'package:food_expiration_reminder/data/local/database_helper.dart';
 import 'package:food_expiration_reminder/data/local/dev_seeder.dart';
 import 'package:food_expiration_reminder/data/models/household_model.dart';
+import 'package:food_expiration_reminder/features/auth/data/auth_service.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/controllers/session_controller.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -172,5 +173,32 @@ void main() {
     final stored = (await SqfliteUserDao(db).getById(session.userId!))!;
     expect(stored.name, 'Alex R.');
     expect(stored.accountType, 'Family');
+  });
+
+  test('Google sign-in creates a profile once and reuses it', () async {
+    auth.nextGoogleAccount = const AuthAccount(
+      uid: 'google-1',
+      email: 'gian@gmail.com',
+      displayName: 'Gian Coronel',
+    );
+    final session = newSession();
+    expect(await session.signInWithGoogle(), isTrue);
+    expect(session.user!.name, 'Gian Coronel');
+    final kitchen = (await SqfliteHouseholdDao(db).getForUser('google-1'))!;
+    expect(kitchen.name, "Gian's Kitchen");
+
+    // Second sign-in: same local profile and kitchen, nothing duplicated.
+    await session.signOut();
+    expect(await session.signInWithGoogle(), isTrue);
+    expect(
+      (await SqfliteHouseholdDao(db).getForUser('google-1'))!.id,
+      kitchen.id,
+    );
+  });
+
+  test('backing out of the Google picker signs nobody in', () async {
+    final session = newSession();
+    expect(await session.signInWithGoogle(), isFalse);
+    expect(session.isSignedIn, isFalse);
   });
 }

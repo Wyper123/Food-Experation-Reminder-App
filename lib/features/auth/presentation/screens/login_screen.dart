@@ -6,6 +6,7 @@ import 'package:food_expiration_reminder/core/widgets/custom_button.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/controllers/session_controller.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/screens/register_screen.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/widgets/auth_form_field.dart';
+import 'package:food_expiration_reminder/features/auth/presentation/widgets/google_sign_in_button.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/widgets/reset_password_sheet.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _submitting = false;
+  bool _googleBusy = false;
   String? _error;
 
   @override
@@ -49,6 +51,22 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+
+  Future<void> _continueWithGoogle() async {
+    setState(() {
+      _googleBusy = true;
+      _error = null;
+    });
+    try {
+      // StartupGate swaps in the app once signed in; backing out of the
+      // account picker simply leaves the login screen.
+      await context.read<SessionController>().signInWithGoogle();
+    } on AuthException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } finally {
+      if (mounted) setState(() => _googleBusy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +146,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     CustomButton(
                       label: 'Log in',
                       isLoading: _submitting,
-                      onPressed: _submit,
+                      onPressed: _googleBusy ? null : _submit,
+                    ),
+                    const SizedBox(height: 16),
+                    const OrDivider(),
+                    const SizedBox(height: 16),
+                    GoogleSignInButton(
+                      isLoading: _googleBusy,
+                      onPressed: _submitting ? null : _continueWithGoogle,
                     ),
                     const SizedBox(height: 20),
                     // Wraps instead of overflowing with large font sizes.

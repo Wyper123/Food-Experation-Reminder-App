@@ -6,6 +6,7 @@ import 'package:food_expiration_reminder/data/local/daos/food_dao.dart';
 import 'package:food_expiration_reminder/data/local/daos/grocery_dao.dart';
 import 'package:food_expiration_reminder/data/local/database_helper.dart';
 import 'package:food_expiration_reminder/data/local/dev_seeder.dart';
+import 'package:food_expiration_reminder/features/auth/data/auth_service.dart';
 import 'package:food_expiration_reminder/features/auth/presentation/screens/register_screen.dart';
 import 'package:food_expiration_reminder/features/notifications/reminders/reminder_scheduler.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -271,6 +272,8 @@ void main() {
 
   testWidgets('a new account starts with an empty kitchen', (tester) async {
     final db = await pumpApp(tester);
+    await tester.ensureVisible(find.text('Create account'));
+    await pumpFor(tester, 2);
     await tester.tap(find.text('Create account'));
     await pumpFor(tester, 5);
 
@@ -601,6 +604,23 @@ void main() {
     await pumpFor(tester, 5);
     expect(prefs.themeMode, ThemeMode.dark);
     expect(find.text('Dark'), findsOneWidget);
+    await pumpUntilDone(tester, db.close());
+  });
+
+  testWidgets('Continue with Google lands on the dashboard', (tester) async {
+    final db = await pumpApp(tester);
+    auth.nextGoogleAccount = const AuthAccount(
+      uid: 'google-1',
+      email: 'gian@gmail.com',
+      displayName: 'Gian Coronel',
+    );
+
+    expect(find.text('Continue with Google'), findsOneWidget);
+    await tester.tap(find.text('Continue with Google'));
+    await pumpFor(tester);
+
+    expect(find.text('Gian'), findsOneWidget);
+    expect(find.text('Your kitchen is empty'), findsOneWidget);
     await pumpUntilDone(tester, db.close());
   });
 }

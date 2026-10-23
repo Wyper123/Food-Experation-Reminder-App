@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 /// A failure the user can fix; [message] is shown as-is.
 class AuthException implements Exception {
@@ -34,6 +35,10 @@ abstract class AuthService {
     String password, {
     required String displayName,
   });
+
+  /// Shows the phone's Google account picker and signs in with the chosen
+  /// account (creating it on first use). Null when the user backs out.
+  Future<AuthAccount?> signInWithGoogle();
 
   /// Removes the just-created account (used to roll back a failed signup).
   Future<void> deleteCurrent();
@@ -94,6 +99,39 @@ class FirebaseAuthService implements AuthService {
         );
       });
 
+  bool _googleReady = false;
+
+  @override
+  Future<AuthAccount?> signInWithGoogle() async {
+    final google = GoogleSignIn.instance;
+    final GoogleSignInAccount picked;
+    try {
+      if (!_googleReady) {
+        // Client ids come from google-services.json.
+        await google.initialize();
+        _googleReady = true;
+      }
+      // Not timed: the user may take a while to choose an account.
+      picked = await google.authenticate();
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled ||
+          e.code == GoogleSignInExceptionCode.interrupted) {
+        return null;
+      }
+      throw AuthException(
+        'Google sign-in is unavailable right now (${e.code.name}). '
+        'Use email and password instead.',
+      );
+    }
+    final idToken = picked.authentication.idToken;
+    return _guard(() async {
+      final cred = await _auth.signInWithCredential(
+        GoogleAuthProvider.credential(idToken: idToken),
+      );
+      return _account(cred.user!);
+    });
+  }
+
   @override
   Future<void> deleteCurrent() async => _auth.currentUser?.delete();
 
@@ -110,6 +148,12 @@ class FirebaseAuthService implements AuthService {
   @override
   Future<void> changePassword(String current, String next) => _guard(() async {
         final user = _auth.currentUser!;
+        if (!user.providerData.any((p) => p.providerId == 'password')) {
+          throw const AuthException(
+            "You sign in with Google, so there's no app password to change. "
+            'Manage your password in your Google account.',
+          );
+        }
         try {
           // Firebase requires a recent sign-in before a password change.
           await user.reauthenticateWithCredential(
@@ -129,7 +173,11 @@ class FirebaseAuthService implements AuthService {
       _auth.currentUser?.updateDisplayName(name);
 
   @override
-  Future<void> signOut() => _auth.signOut();
+  Future<void> signOut() async {
+    await _auth.signOut();
+    // So the next Google sign-in asks which account to use.
+    if (_googleReady) await GoogleSignIn.instance.signOut();
+  }
 
   /// Longest a login request may take before the user is told to check the
   /// connection. Firebase itself can wait minutes, e.g. on Wi-Fi with

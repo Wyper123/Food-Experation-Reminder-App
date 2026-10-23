@@ -12,7 +12,20 @@
           "package_name": "com.giancoronel.foodreminder"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "336392743932-p2qh3v63s6c50u2iuo36eilk3jman7re.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.giancoronel.foodreminder",
+            "certificate_hash": "39ae0ee395e6250285015fb473776e5ba6b80c4e"
+          }
+        },
+        {
+          "client_id": "336392743932-ng0fufc7f6tta70tn7eaeanaf40am310.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAy4IxxFd7OgVGSsX3Q3_V-Qtb7E5AhBII"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "336392743932-ng0fufc7f6tta70tn7eaeanaf40am310.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
